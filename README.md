@@ -1,23 +1,21 @@
-# PDF to Markdown Tools
+# PDF to Markdown
 
-Two tools that convert PDF files to Markdown — one runs locally (Python), one uses the Claude AI API (React).
+Convert PDF files to Markdown locally using `pdf_to_md.py`. Supports Google Drive as both a source and destination.
 
 ---
 
-## 1. Local Converter — `pdf_to_md.py`
-
-No API key needed. Uses `pdfplumber` to extract text and tables directly from the PDF.
-
-### Install dependency
+## Getting started
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Commands
+---
+
+## Basic usage
 
 ```bash
-# Basic — converts file.pdf and saves file.md in the same folder
+# Convert a PDF — saves file.md in the same folder
 python3 pdf_to_md.py file.pdf
 
 # Custom output path
@@ -26,58 +24,13 @@ python3 pdf_to_md.py file.pdf -o /path/to/output.md
 # Convert multiple files at once
 python3 pdf_to_md.py file1.pdf file2.pdf file3.pdf
 
-# Print result to terminal instead of saving
+# Print to terminal instead of saving
 python3 pdf_to_md.py file.pdf --stdout
 ```
 
-### Where to put your files
-
-Drop your PDF anywhere and pass its path to the script.
-The easiest option is to put it in this folder:
-
-```
-/workspaces/Tools/
-├── pdf_to_md.py
-├── your-file.pdf     ← here
-```
-
-Then run:
-
-```bash
-python3 /workspaces/Tools/pdf_to_md.py /workspaces/Tools/your-file.pdf
-```
-
-The output `your-file.md` is saved next to the PDF automatically.
-
 ---
 
-## 2. AI Converter — `ConvertToMd.JSX`
-
-A React component that sends the PDF to Claude (claude-sonnet-4-6) and gets back clean Markdown. Handles formatting, tables, headings, and bold/italic better than the local tool.
-
-### Requires
-
-- React 18+
-- An Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
-
-### Usage
-
-1. Drop `ConvertToMd.JSX` into your React project
-2. Import it where needed:
-   ```jsx
-   import PdfToMd from "./ConvertToMd";
-
-   export default function App() {
-     return <PdfToMd />;
-   }
-   ```
-3. Enter your API key in the key field (saved to localStorage)
-4. Drag a PDF onto the drop zone or click to browse
-5. Copy or download the resulting `.md` file
-
----
-
-## 3. Google Drive Integration (Python CLI only)
+## Google Drive
 
 ### One-time setup
 
@@ -87,7 +40,7 @@ A React component that sends the PDF to Claude (claude-sonnet-4-6) and gets back
 4. Choose **Desktop app** → Download the JSON file
 5. Rename it to `credentials.json` and place it in this folder
 
-On the first Drive command, a browser window opens for you to log in and approve access. A `token.json` is saved automatically for future runs — **do not share or commit either file**.
+On the first Drive command, a browser window opens for you to log in. A `token.json` is saved automatically for future runs — **do not share or commit either file**.
 
 ### Commands
 
@@ -112,17 +65,4 @@ python3 pdf_to_md.py --from-drive FILE_ID --to-drive --drive-folder FOLDER_ID
 python3 pdf_to_md.py --from-drive FILE_ID -o ~/Desktop/output.md
 ```
 
-**Where to find the file/folder ID:**
-- Open the file or folder in Google Drive
-- The ID is the long string in the URL after `/d/` or `/folders/`
-
----
-
-## When to use which
-
-| Situation | Use |
-|---|---|
-| No internet / no API key | `pdf_to_md.py` |
-| Simple text-heavy PDFs | `pdf_to_md.py` |
-| Complex layout, mixed content | `ConvertToMd.JSX` |
-| Need best formatting quality | `ConvertToMd.JSX` |
+**Where to find the file/folder ID:** open the file or folder in Google Drive — the ID is the long string in the URL after `/d/` or `/folders/`.

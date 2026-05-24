@@ -2,8 +2,9 @@
 credentials.json
 token.json
 
-# PDF input files
+# PDF input files and converted output
 *.pdf
+*.md
 
 ### AL ###
 #Template for AL projects for Dynamics 365 Business Central
