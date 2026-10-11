@@ -1,6 +1,6 @@
 # PDF to Markdown
 
-Convert PDF files to Markdown locally using `pdf_to_md.py`. Supports Google Drive as both a source and destination.
+Convert PDF slides to Markdown with `pdf_to_md.py`. Each slide is sent to Gemini as an image, so the output keeps the structure (headings, bullets, tables, code) and **explains every picture and diagram** in the slide. An offline `pdfplumber` engine is also available. Supports Google Drive as both a source and destination.
 
 ---
 
@@ -9,6 +9,40 @@ Convert PDF files to Markdown locally using `pdf_to_md.py`. Supports Google Driv
 ```bash
 pip install -r requirements.txt
 ```
+
+Get a Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey), then either set it as an environment variable or create a `.env` file in this folder:
+
+```
+GEMINI_API_KEY=your-key-here
+```
+
+`.env` is git-ignored — **never commit your key**.
+
+---
+
+## Gemini options
+
+```bash
+# Default: Gemini 2.5 Flash, all slides
+python3 pdf_to_md.py lecture.pdf
+
+# Use a stronger model for diagram-heavy slides
+python3 pdf_to_md.py lecture.pdf --model gemini-2.5-pro
+
+# Only some slides
+python3 pdf_to_md.py lecture.pdf --pages 1-5,8
+
+# Explain figures in another language (slide text stays as-is)
+python3 pdf_to_md.py lecture.pdf --lang Arabic
+
+# Parallel requests (lower this if you hit rate limits on the free tier)
+python3 pdf_to_md.py lecture.pdf --workers 2
+
+# Offline, text-only extraction (no images, no API key needed)
+python3 pdf_to_md.py lecture.pdf --engine pdfplumber
+```
+
+Each slide's result is cached in `.slide_cache/`, so re-running after an error only calls Gemini for the slides that are missing. Use `--no-cache` to force a fresh conversion. Rate-limit (429) and server errors are retried automatically. If a slide still fails, a warning is written in its place and the rest of the deck continues.
 
 ---
 

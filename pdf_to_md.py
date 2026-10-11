@@ -48,13 +48,22 @@ def pdf_to_markdown(pdf_source):
     return "\n".join(md_lines)
 
 
-def convert_file(pdf_path, out_path=None, stdout=False):
+def convert_file(pdf_path, out_path=None, stdout=False, engine="gemini", **gemini_opts):
     if not os.path.exists(pdf_path):
         print(f"Error: file not found: {pdf_path}", file=sys.stderr)
         return False
 
-    print(f"Converting: {pdf_path}")
-    markdown = pdf_to_markdown(pdf_path)
+    print(f"Converting ({engine}): {pdf_path}", file=sys.stderr if stdout else sys.stdout)
+    if engine == "gemini":
+        from gemini_md import gemini_to_markdown
+        title = os.path.splitext(os.path.basename(pdf_path))[0]
+        try:
+            markdown = gemini_to_markdown(pdf_path, title=title, **gemini_opts)
+        except RuntimeError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return False
+    else:
+        markdown = pdf_to_markdown(pdf_path)
 
     if stdout:
         print(markdown)
@@ -72,7 +81,7 @@ def convert_file(pdf_path, out_path=None, stdout=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert PDF files to Markdown using pdfplumber."
+        description="Convert PDF slides to Markdown using Gemini (or pdfplumber offline)."
     )
     parser.add_argument("pdfs", nargs="*", metavar="FILE.pdf",
                         help="One or more local PDF files to convert")
@@ -80,6 +89,20 @@ def main():
                         help="Output path (single file only)")
     parser.add_argument("--stdout", action="store_true",
                         help="Print Markdown to stdout instead of saving a file (single file only)")
+
+    gemini_group = parser.add_argument_group("Gemini")
+    gemini_group.add_argument("--engine", choices=["gemini", "pdfplumber"], default="gemini",
+                              help="Conversion engine (default: gemini)")
+    gemini_group.add_argument("--model", default="gemini-2.5-flash",
+                              help="Gemini model (default: gemini-2.5-flash; try gemini-2.5-pro for complex diagrams)")
+    gemini_group.add_argument("--pages", metavar="SPEC",
+                              help="Only convert these slides, e.g. 1-5,8")
+    gemini_group.add_argument("--lang", metavar="LANGUAGE",
+                              help="Language for figure explanations, e.g. Arabic (default: same as slides)")
+    gemini_group.add_argument("--workers", type=int, default=4,
+                              help="Parallel Gemini requests (default: 4)")
+    gemini_group.add_argument("--no-cache", action="store_true",
+                              help="Ignore cached slide results and call Gemini again")
 
     # Google Drive options
     drive_group = parser.add_argument_group("Google Drive")
@@ -115,6 +138,8 @@ def main():
         service = drive_utils.get_service()
 
     ok = True
+    gemini_opts = dict(model=args.model, pages=args.pages, lang=args.lang,
+                       workers=args.workers, use_cache=not args.no_cache)
 
     if args.from_drive:
         file_id = drive_utils.parse_file_id(args.from_drive)
@@ -139,7 +164,8 @@ def main():
                 print(f"  Uploaded to Drive: {url}")
     else:
         for pdf_path in args.pdfs:
-            if not convert_file(pdf_path, out_path=args.output, stdout=args.stdout):
+            if not convert_file(pdf_path, out_path=args.output, stdout=args.stdout,
+                                engine=args.engine, **gemini_opts):
                 ok = False
                 continue
             if args.to_drive and not args.stdout:

@@ -2,6 +2,10 @@
 credentials.json
 token.json
 
+# Gemini API key and per-slide cache
+.env
+.slide_cache/
+
 # PDF input files and converted output
 *.pdf
 *.md
